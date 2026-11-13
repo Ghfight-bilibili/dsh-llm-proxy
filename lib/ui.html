@@ -360,9 +360,9 @@
 
     <section id="tab-about" class="panel">
       <div class="card glass">
-        <h2>关于 DSH LLM Proxy <span id="versionText">v0.4.0</span></h2>
+        <h2>关于 DSH LLM Proxy <span id="versionText">v0.4.1</span></h2>
         <ul class="about-list">
-          <li><span>插件</span><span>dsh-llm-proxy</span></li>
+          <li><span>插件</span><span>@ghfight/dsh-llm-proxy</span></li>
           <li><span>代理内核</span><span id="aboutCore">Mihomo</span></li>
           <li><span>数据目录</span><span id="aboutData">—</span></li>
           <li><span>订阅地址</span><span id="aboutSub">—</span></li>
@@ -515,7 +515,7 @@
     setText('stPid', status.pid || '—');
     setText('subMeta', status.configured ? (status.subscription || '已导入') + (status.updatedAt ? ' · ' + status.updatedAt : '') : '未导入');
     setText('aboutCore', status.coreVersion || 'Mihomo');
-    setText('versionText', 'v0.4.0');
+    setText('versionText', 'v0.4.1');
     $('startBtn').disabled = busy || status.running;
     $('stopBtn').disabled = busy || !status.running;
     $('testBtn').disabled = busy || !status.running;

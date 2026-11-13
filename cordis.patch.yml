@@ -1,4 +1,4 @@
 # DSH LLM Proxy bundle patch: mounts one plugin row when installed as a DSH bundle.
 - insert:
     - id: dsh-llm-proxy
-      name: dsh-llm-proxy
+      name: "@ghfight/dsh-llm-proxy"
