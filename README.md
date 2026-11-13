@@ -45,7 +45,13 @@ Mihomo（私有配置、私有数据目录）
 
 ## 安装
 
-### 方式 A：安装 Release 中的 tarball（推荐，立即可用）
+### 方式 A：从 npm 安装（推荐）
+
+```bat
+dsh plugin --profile desktop add dsh-llm-proxy-plugin --config.auto-install-peers=false
+```
+
+### 方式 B：安装 Release 中的 tarball
 
 1. 从 [Releases](https://github.com/Ghfight-bilibili/dsh-llm-proxy/releases) 下载
    `dsh-llm-proxy-plugin-0.4.2.tgz`；
@@ -70,15 +76,6 @@ dsh plugin --profile desktop add .\dsh-llm-proxy-plugin-0.4.2.tgz --config.auto-
 > `dsh-llm-proxy-plugin` 加进 `dsh.profile.bundles` 再手写 patch，否则可能重复加载。
 > 二选一：用上面的手写 patch，或把包名加入 `dsh.profile.bundles` 让插件自带 patch 生效。
 
-### 方式 B：从 npm 安装
-
-```bat
-dsh plugin --profile desktop add dsh-llm-proxy-plugin --config.auto-install-peers=false
-```
-
-> npm 对首次发布的新包会先创建 `0.0.0-stage` 占位版本并进入审核。若
-> `npm view dsh-llm-proxy-plugin version` 返回 `0.0.0-stage`，说明审核尚未完成，请使用方式 A。
-
 ### 方式 C：从源码打包
 
 ```bat
@@ -88,7 +85,7 @@ npm pack
 dsh plugin --profile desktop add .\dsh-llm-proxy-plugin-0.4.2.tgz --config.auto-install-peers=false
 ```
 
-然后按方式 A 的 YAML 增加 patch 条目。
+然后按方式 B 的 YAML 增加 patch 条目。
 
 安装完成后重启 DSH。重启后在会话里应该能看到 `clash_*` 工具。
 
