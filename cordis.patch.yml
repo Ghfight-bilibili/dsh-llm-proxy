@@ -1,4 +1,4 @@
-# dsh-clash-proxy bundle patch: mounts one plugin row when installed as a DSH bundle.
+# DSH Clash bundle patch: mounts one plugin row when installed as a DSH bundle.
 - insert:
-    - id: dsh-clash-proxy
-      name: dsh-clash-proxy
+    - id: dsh-clash
+      name: dsh-clash

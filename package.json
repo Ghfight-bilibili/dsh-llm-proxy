@@ -1,7 +1,7 @@
 {
-  "name": "dsh-clash-proxy",
-  "version": "0.3.5",
-  "description": "Give DSH its own Clash/Mihomo proxy with subscription import, automatic node selection, and manual override, without touching system proxy settings.",
+  "name": "dsh-clash",
+  "version": "0.4.0",
+  "description": "DSH Clash: give DSH its own Clash/Mihomo proxy with subscription import, automatic node selection, and manual override, without touching system proxy settings.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -43,11 +43,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ghfight-bilibili/dsh-clash-proxy.git"
+    "url": "https://github.com/Ghfight-bilibili/dsh-clash.git"
   },
-  "homepage": "https://github.com/Ghfight-bilibili/dsh-clash-proxy#readme",
+  "homepage": "https://github.com/Ghfight-bilibili/dsh-clash#readme",
   "bugs": {
-    "url": "https://github.com/Ghfight-bilibili/dsh-clash-proxy/issues"
+    "url": "https://github.com/Ghfight-bilibili/dsh-clash/issues"
   },
   "author": "Ghfight-bilibili",
   "keywords": [

@@ -1,4 +1,6 @@
-# dsh-clash-proxy
+# DSH Clash
+
+> 原名 `dsh-clash-proxy`，自 v0.4.0 起更名为 **DSH Clash**（包名 `dsh-clash`）；数据目录和 Web 路由保持不变。
 
 给 **DSH 进程自己** 使用的 Clash / Mihomo 代理插件：
 
@@ -47,12 +49,12 @@ Mihomo（私有配置、私有数据目录）
 
 ### 方式 A：安装 Release 中的 tarball（推荐）
 
-1. 从 [Releases](https://github.com/Ghfight-bilibili/dsh-clash-proxy/releases) 下载
-   `dsh-clash-proxy-0.3.5.tgz`；
+1. 从 [Releases](https://github.com/Ghfight-bilibili/dsh-clash/releases) 下载
+   `dsh-clash-0.4.0.tgz`；
 2. 在下载目录执行：
 
 ```bat
-dsh plugin --profile desktop add .\dsh-clash-proxy-0.3.5.tgz --config.auto-install-peers=false
+dsh plugin --profile desktop add .\dsh-clash-0.4.0.tgz --config.auto-install-peers=false
 ```
 
 然后把下面这段加到当前 profile 的用户 patch 文件
@@ -60,34 +62,43 @@ dsh plugin --profile desktop add .\dsh-clash-proxy-0.3.5.tgz --config.auto-insta
 
 ```yaml
 - insert:
-    - id: dsh-clash-proxy
-      name: dsh-clash-proxy
+    - id: dsh-clash
+      name: dsh-clash
       config:
         autoStart: true
 ```
 
 > 插件自己的 `cordis.patch.yml` 也会插入同名条目。**不要同时**把
-> `dsh-clash-proxy` 加进 `dsh.profile.bundles` 再手写 patch，否则可能重复加载。
+> `dsh-clash` 加进 `dsh.profile.bundles` 再手写 patch，否则可能重复加载。
 > 二选一：用上面的手写 patch，或把包名加入 `dsh.profile.bundles` 让插件自带 patch 生效。
 
 ### 方式 B：从源码打包
 
 ```bat
-git clone https://github.com/Ghfight-bilibili/dsh-clash-proxy.git
-cd dsh-clash-proxy
+git clone https://github.com/Ghfight-bilibili/dsh-clash.git
+cd dsh-clash
 npm pack
-dsh plugin --profile desktop add .\dsh-clash-proxy-0.3.5.tgz --config.auto-install-peers=false
+dsh plugin --profile desktop add .\dsh-clash-0.4.0.tgz --config.auto-install-peers=false
 ```
 
 然后按方式 A 的 YAML 增加 patch 条目。
 
 安装完成后重启 DSH。重启后在会话里应该能看到 `clash_*` 工具。
 
+### 从旧名 `dsh-clash-proxy` 迁移
+
+新旧包共用数据目录 `%USERPROFILE%\.dsh\clash-proxy`（或 `$DSH_HOME/clash-proxy`），订阅、核心和节点状态都不会丢。升级时不要同时保留两个 patch 条目：
+
+1. 删除 profile patch 里 `id: dsh-clash-proxy` 的 `insert` 条目；
+2. `dsh plugin --profile desktop remove dsh-clash-proxy`；
+3. 按上面的方式安装 `dsh-clash`，把 patch 条目改成 `id: dsh-clash` / `name: dsh-clash`；
+4. 重启 DSH。
+
 ## Web 控制面板
 
 插件自带一个控制面板，不用记工具名也能操作：
 
-- 在 DSH 的 **设置 → Clash 代理** 中直接打开；
+- 在 DSH 的 **设置 → DSH Clash** 中直接打开；
 - 或浏览器访问 `http://127.0.0.1:<DSH Web 端口>/clash-proxy`（端口以你的 DSH Web 地址为准）。
 
 面板支持：
@@ -122,8 +133,8 @@ dsh plugin --profile desktop add .\dsh-clash-proxy-0.3.5.tgz --config.auto-insta
 
 ```yaml
 - insert:
-    - id: dsh-clash-proxy
-      name: dsh-clash-proxy
+    - id: dsh-clash
+      name: dsh-clash
       config:
         autoStart: true
         subscriptionUrl: 'https://example.com/api/v1/client/subscribe?token=...'
@@ -219,11 +230,11 @@ clash-proxy/
 
 ## 卸载
 
-1. 在 profile patch 中删除 `dsh-clash-proxy` 的 `insert` 条目；
+1. 在 profile patch 中删除 `dsh-clash` 的 `insert` 条目；
 2. 如果通过 pnpm 安装：
 
    ```bat
-   dsh plugin --profile desktop remove dsh-clash-proxy
+   dsh plugin --profile desktop remove dsh-clash
    ```
 
 3. 删除数据目录 `%USERPROFILE%\.dsh\clash-proxy`（可选，会同时删除已下载核心和订阅缓存）；
