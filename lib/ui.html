@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clash 代理 · DSH</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --accent: #4f8cff;
+    --accent-2: #7c5cff;
+    --text: #111827;
+    --muted: #667085;
+    --line: rgba(17, 24, 39, 0.12);
+    --glass: rgba(255, 255, 255, 0.58);
+    --glass-strong: rgba(255, 255, 255, 0.80);
+    --glass-border: rgba(255, 255, 255, 0.74);
+    --field: rgba(255, 255, 255, 0.52);
+    --shadow: 0 24px 70px rgba(31, 56, 102, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    --ok: #12a36b;
+    --ok-soft: rgba(18, 163, 107, 0.12);
+    --warn: #c47b13;
+    --warn-soft: rgba(196, 123, 19, 0.12);
+    --bad: #d14343;
+    --bad-soft: rgba(209, 67, 67, 0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text: #eef3ff;
+      --muted: #9aa8c2;
+      --line: rgba(255, 255, 255, 0.13);
+      --glass: rgba(13, 21, 36, 0.62);
+      --glass-strong: rgba(13, 21, 36, 0.84);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --field: rgba(7, 12, 22, 0.44);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      --ok: #4ade9d;
+      --ok-soft: rgba(74, 222, 157, 0.13);
+      --warn: #f0b86e;
+      --warn-soft: rgba(240, 184, 110, 0.13);
+      --bad: #ff8c82;
+      --bad-soft: rgba(255, 140, 130, 0.13);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; margin: 0; }
+  body {
+    position: relative;
+    overflow-x: hidden;
+    background:
+      radial-gradient(900px 600px at 10% -10%, rgba(79, 140, 255, 0.30), transparent 60%),
+      radial-gradient(760px 560px at 95% 0%, rgba(124, 92, 255, 0.20), transparent 58%),
+      radial-gradient(900px 700px at 50% 115%, rgba(18, 163, 107, 0.13), transparent 62%),
+      #eef3fb;
+    color: var(--text);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-color-scheme: dark) {
+    body {
+      background:
+        radial-gradient(900px 600px at 10% -10%, rgba(43, 91, 190, 0.34), transparent 60%),
+        radial-gradient(760px 560px at 95% 0%, rgba(96, 64, 190, 0.26), transparent 58%),
+        radial-gradient(900px 700px at 50% 115%, rgba(12, 110, 83, 0.20), transparent 62%),
+        #070c16;
+    }
+  }
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    z-index: 0;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  body::before { width: 340px; height: 340px; left: -110px; top: 24%; background: rgba(79, 140, 255, 0.32); }
+  body::after { width: 300px; height: 300px; right: -80px; bottom: 6%; background: rgba(124, 92, 255, 0.26); }
+  .app { position: relative; z-index: 1; width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 22px 0 34px; }
+  body.embed .app { width: calc(100% - 20px); padding: 8px 0 14px; }
+  body.embed .hero { padding: 12px 14px; }
+  body.embed .hero-sub, body.embed .logo { display: none; }
+
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(26px) saturate(165%);
+    backdrop-filter: blur(26px) saturate(165%);
+  }
+  .hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    margin-bottom: 14px;
+  }
+  .hero-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .logo {
+    width: 42px; height: 42px; flex: none; border-radius: 13px;
+    display: grid; place-items: center;
+    color: #fff; font-weight: 800; font-size: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 10px 26px rgba(79, 140, 255, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  }
+  h1 { margin: 0; font-size: 18px; line-height: 1.25; letter-spacing: 0.2px; }
+  .hero-sub { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+  .hero-right { display: flex; align-items: center; gap: 8px; flex: none; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 11px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--field);
+    font-size: 12px; font-weight: 650; white-space: nowrap; color: var(--muted);
+  }
+  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+  .pill.bad { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
+
+  .tabs {
+    display: inline-flex; gap: 3px; padding: 4px;
+    border-radius: 12px; margin-bottom: 14px;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    backdrop-filter: blur(20px) saturate(150%);
+    box-shadow: 0 10px 30px rgba(31, 56, 102, 0.10);
+  }
+  .tab-btn {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    height: 30px; padding: 0 14px; border-radius: 8px;
+    font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--text);
+    background: var(--glass-strong);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 6px 16px rgba(31, 56, 102, 0.10);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade 0.18s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+  .grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 14px; }
+  .card { border-radius: 16px; padding: 16px; }
+  .card + .card { margin-top: 14px; }
+  .card h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: 0.2px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .card h2 span { color: var(--muted); font-weight: 500; font-size: 11.5px; }
+  .field { display: grid; gap: 6px; margin-bottom: 10px; }
+  .field label { color: var(--muted); font-size: 11.5px; font-weight: 600; }
+  input[type="text"], textarea {
+    width: 100%; color: var(--text);
+    background: var(--field); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0 10px; height: 32px; font: inherit; font-size: 12.5px;
+    outline: none; transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+  textarea { height: auto; min-height: 148px; padding: 9px 10px; line-height: 1.6; resize: vertical; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+  input[type="text"]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.16); }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.7; }
+  .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row.end { justify-content: flex-end; }
+  .btn {
+    appearance: none; height: 30px; padding: 0 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--field); color: var(--text);
+    font: inherit; font-size: 12px; font-weight: 650; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    transition: transform 0.12s ease, background 0.16s ease, border-color 0.16s ease, opacity 0.16s ease;
+    text-decoration: none;
+  }
+  .btn:hover { background: var(--glass-strong); border-color: rgba(79, 140, 255, 0.34); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    border-color: transparent; color: #fff;
+    background: linear-gradient(135deg, var(--accent), #6f7cff);
+    box-shadow: 0 8px 20px rgba(79, 140, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+  .btn.primary:hover { filter: brightness(1.04); }
+  .btn.danger { color: var(--bad); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn.small { height: 26px; padding: 0 9px; font-size: 11.5px; }
+
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .stat { background: var(--field); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; min-width: 0; }
+  .stat .k { color: var(--muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.2px; }
+  .stat .v { margin-top: 2px; font-size: 12.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat .v.mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11.5px; }
+  .subtle { color: var(--muted); font-size: 11.5px; }
+
+  .nodes-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .nodes-head .search { flex: 1 1 150px; min-width: 120px; }
+  .node-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; max-height: 360px; overflow: auto; padding-right: 2px; }
+  .node {
+    appearance: none; text-align: left; width: 100%; border: 1px solid var(--line);
+    background: var(--field); color: inherit; border-radius: 10px; padding: 8px 10px;
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    font: inherit; transition: border-color 0.16s ease, background 0.16s ease, transform 0.12s ease;
+  }
+  .node:hover { border-color: rgba(79, 140, 255, 0.40); background: var(--glass-strong); }
+  .node:active { transform: translateY(1px); }
+  .node.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.15); }
+  .node .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--muted); opacity: 0.55; }
+  .node.active .dot { background: var(--accent); opacity: 1; box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.16); }
+  .node .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+  .node .tag { color: var(--muted); font-size: 10px; flex: none; }
+  .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; font-size: 10.5px; font-weight: 650; background: var(--field); border: 1px solid var(--line); color: var(--muted); flex: none; }
+  .badge.ok { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+  .badge.warn { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+  .badge.bad { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
+  .empty { padding: 18px 10px; text-align: center; color: var(--muted); font-size: 12px; }
+
+  .scope-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .scope {
+    position: relative; display: flex; gap: 9px; align-items: flex-start;
+    padding: 11px 12px; border-radius: 11px; border: 1px solid var(--line);
+    background: var(--field); cursor: pointer;
+  }
+  .scope:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.14); background: var(--glass-strong); }
+  .scope input { margin: 3px 0 0; accent-color: var(--accent); flex: none; }
+  .scope b { display: block; font-size: 12.5px; }
+  .scope small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; line-height: 1.45; }
+  .note { color: var(--muted); font-size: 11.5px; line-height: 1.7; }
+  .note code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; background: var(--field); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
+  .about-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .about-list li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .about-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .about-list span:first-child { color: var(--muted); }
+  .about-list span:last-child { text-align: right; overflow-wrap: anywhere; }
+  .error-banner { margin-bottom: 12px; border-radius: 10px; padding: 9px 11px; font-size: 12px; color: var(--bad); background: var(--bad-soft); border: 1px solid rgba(209, 67, 67, 0.18); }
+
+  .toast {
+    position: fixed; z-index: 20; left: 50%; bottom: 22px; transform: translate(-50%, 12px);
+    max-width: min(560px, calc(100vw - 32px));
+    padding: 10px 14px; border-radius: 10px; font-size: 12px;
+    color: var(--text); background: var(--glass-strong); border: 1px solid var(--glass-border);
+    box-shadow: 0 16px 40px rgba(20, 34, 64, 0.20);
+    -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%);
+    opacity: 0; pointer-events: none; transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .spinner { width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 760px) {
+    .hero { align-items: flex-start; flex-direction: column; }
+    .hero-right { width: 100%; justify-content: space-between; }
+    .grid { grid-template-columns: 1fr; }
+    .node-list { grid-template-columns: 1fr; }
+    .scope-grid { grid-template-columns: 1fr; }
+    .tabs { width: 100%; }
+    .tab-btn { flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero glass">
+    <div class="hero-left">
+      <div class="logo">C</div>
+      <div>
+        <h1>Clash 代理</h1>
+        <p class="hero-sub">DSH 专属代理 · 订阅、节点与绕行范围</p>
+      </div>
+    </div>
+    <div class="hero-right">
+      <span id="statusPill" class="pill">读取中</span>
+      <button id="fullBtn" class="btn" type="button" title="在系统默认浏览器中打开当前页面">用系统浏览器打开</button>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="proxy" role="tab">代理</button>
+    <button class="tab-btn" data-tab="bypass" role="tab">绕过与范围</button>
+    <button class="tab-btn" data-tab="about" role="tab">关于</button>
+  </div>
+
+  <main>
+    <section id="tab-proxy" class="panel active">
+      <div id="errorBanner" class="error-banner" hidden></div>
+      <div class="grid">
+        <div class="card glass">
+          <h2>订阅 <span id="subMeta">未导入</span></h2>
+          <div class="field">
+            <label for="subUrl">订阅链接</label>
+            <input id="subUrl" type="text" autocomplete="off" placeholder="https://example.com/api/v1/clash?token=..." />
+          </div>
+          <div class="field">
+            <label for="subName">名称（可选）</label>
+            <input id="subName" type="text" autocomplete="off" placeholder="例如：机场 A" />
+          </div>
+          <div class="row">
+            <button id="importBtn" class="btn primary">导入订阅</button>
+            <button id="updateBtn" class="btn">更新订阅</button>
+            <button id="coreBtn" class="btn">安装/修复内核</button>
+          </div>
+          <p class="note" style="margin:10px 0 0">导入后会生成 <code>DSH-AUTO</code> 自动组，并默认走延迟最低的节点。订阅只在本地 Mihomo 中运行，不修改系统代理。</p>
+        </div>
+
+        <div class="card glass">
+          <h2>运行状态 <span id="modeText">—</span></h2>
+          <div class="stats">
+            <div class="stat"><div class="k">当前节点</div><div id="stNode" class="v">—</div></div>
+            <div class="stat"><div class="k">节点数</div><div id="stCount" class="v">—</div></div>
+            <div class="stat"><div class="k">混合端口</div><div id="stMixed" class="v mono">—</div></div>
+            <div class="stat"><div class="k">控制端口</div><div id="stController" class="v mono">—</div></div>
+            <div class="stat"><div class="k">内核</div><div id="stCore" class="v mono">—</div></div>
+            <div class="stat"><div class="k">进程</div><div id="stPid" class="v mono">—</div></div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <button id="startBtn" class="btn primary">启动</button>
+            <button id="stopBtn" class="btn danger">停止</button>
+            <button id="testBtn" class="btn">测速</button>
+          </div>
+          <p class="subtle" style="margin:10px 0 0">启动后仅影响 DSH 进程内的网络请求，其他程序保持直连。</p>
+        </div>
+      </div>
+
+      <div class="card glass">
+        <div class="nodes-head">
+          <h2 style="margin:0;flex:1">节点 <span id="nodeMeta"></span></h2>
+          <input id="search" class="search" type="text" placeholder="搜索节点…" />
+          <button id="autoBtn" class="btn small">自动选择</button>
+        </div>
+        <div id="nodeList" class="node-list"></div>
+      </div>
+    </section>
+
+    <section id="tab-bypass" class="panel">
+      <div class="card glass">
+        <h2>代理范围 <span>保存后立即生效</span></h2>
+        <div class="scope-grid">
+          <label class="scope">
+            <input type="radio" name="scope" value="all" />
+            <span><b>全部流量</b><small>除本机/内网和下方绕行列表外，DSH 的所有外部请求都走代理。</small></span>
+          </label>
+          <label class="scope">
+            <input type="radio" name="scope" value="models" />
+            <span><b>仅模型接口</b><small>只代理大模型 API，其余请求（含 DSH Remote、插件服务）保持直连。</small></span>
+          </label>
+        </div>
+        <div class="field">
+          <label for="bypass">绕行列表（每行一个，支持 * 与 *.example.com）</label>
+          <textarea id="bypass" spellcheck="false" placeholder="dsh.r2049.cn&#10;*.r2049.cn"></textarea>
+        </div>
+        <div class="row end">
+          <button id="defaultsBtn" class="btn">填入默认值</button>
+          <button id="savePolicyBtn" class="btn primary">保存设置</button>
+        </div>
+        <p class="note" style="margin:12px 0 0">
+          默认绕行：<span id="defaultHosts" class="subtle"></span><br />
+          DSH Remote 使用 <code>https://dsh.r2049.cn</code> 作为信令服务器；如果 Remote 无法连接，请确认它在绕行列表中，或切换到“仅模型接口”。
+        </p>
+      </div>
+      <div class="card glass">
+        <h2>模型接口白名单 <span>“仅模型接口”模式使用</span></h2>
+        <p class="note" id="modelHosts" style="margin:0"></p>
+      </div>
+    </section>
+
+    <section id="tab-about" class="panel">
+      <div class="card glass">
+        <h2>关于 <span id="versionText">v0.3.5</span></h2>
+        <ul class="about-list">
+          <li><span>插件</span><span>dsh-clash-proxy</span></li>
+          <li><span>代理内核</span><span id="aboutCore">Mihomo</span></li>
+          <li><span>数据目录</span><span id="aboutData">—</span></li>
+          <li><span>订阅地址</span><span id="aboutSub">—</span></li>
+          <li><span>自动组</span><span>DSH-AUTO（url-test）</span></li>
+          <li><span>系统代理</span><span>不修改</span></li>
+        </ul>
+        <p class="note" style="margin:14px 0 0">面板只控制 DSH 进程内的请求。关闭 DSH 或停止代理后，其他软件不受影响。</p>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(function () {
+  var PAGE = location.pathname;
+  while (PAGE.length > 1 && PAGE.charAt(PAGE.length - 1) === '/') PAGE = PAGE.slice(0, -1);
+  var API = PAGE + '/api/';
+  var state = null;
+  var busy = false;
+  var toastTimer = 0;
+  var lastPolicyText = '';
+  var policyDirty = false;
+
+  function $(id) { return document.getElementById(id); }
+
+  function toast(message, bad) {
+    var el = $('toast');
+    el.textContent = String(message || '');
+    el.style.color = bad ? 'var(--bad)' : 'var(--text)';
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('show'); }, 3200);
+  }
+
+  async function request(path, body) {
+    var options = { method: body === undefined ? 'GET' : 'POST', headers: {} };
+    if (body !== undefined) {
+      options.headers['content-type'] = 'application/json';
+      options.body = JSON.stringify(body);
+    }
+    var response = await fetch(API + path, options);
+    var data = null;
+    try { data = await response.json(); } catch (error) { data = null; }
+    if (!response.ok || !data || data.ok === false) {
+      var message = data && data.error && data.error.message ? data.error.message : ('请求失败 HTTP ' + response.status);
+      throw new Error(message);
+    }
+    return data;
+  }
+
+  function fullPageUrl() {
+    return location.origin + PAGE;
+  }
+
+  async function openFullPage() {
+    try {
+      await request('open', { url: fullPageUrl() });
+      toast('已在系统浏览器中打开');
+      return;
+    } catch (error) {
+      try {
+        var win = window.open(fullPageUrl(), '_blank', 'noopener,noreferrer');
+        if (win) { toast('已请求系统浏览器打开'); return; }
+      } catch (fallbackError) {}
+      toast('打开失败：' + (error && error.message ? error.message : error), true);
+    }
+  }
+
+  function activateTab(name) {
+    var buttons = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < buttons.length; i += 1) {
+      buttons[i].classList.toggle('active', buttons[i].getAttribute('data-tab') === name);
+    }
+    var panels = document.querySelectorAll('.panel');
+    for (var j = 0; j < panels.length; j += 1) {
+      panels[j].classList.toggle('active', panels[j].id === 'tab-' + name);
+    }
+    if (name === 'bypass' && !policyDirty) fillPolicy();
+    try { history.replaceState(null, '', '#' + name); } catch (error) {}
+  }
+
+  function setText(id, value) {
+    var el = $(id);
+    if (el) el.textContent = value === undefined || value === null || value === '' ? '—' : String(value);
+  }
+
+  function statusClass(status) {
+    if (!status.configured) return 'warn';
+    if (status.running) return 'ok';
+    return '';
+  }
+
+  function shortNode(name) {
+    var text = String(name || '—');
+    return text.length > 22 ? text.slice(0, 21) + '…' : text;
+  }
+
+  function delayBadge(delay) {
+    var n = Number(delay) || 0;
+    if (!n) return '<span class="badge">未测</span>';
+    var cls = n < 160 ? 'ok' : (n < 420 ? 'warn' : 'bad');
+    return '<span class="badge ' + cls + '">' + n + ' ms</span>';
+  }
+
+  function isInfoNode(name) {
+    return /(剩余流量|套餐到期|距离下次重置|过期时间|官网|订阅地址)/.test(String(name || ''));
+  }
+
+  function escapeHtml(value) {
+    return String(value === undefined || value === null ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function renderNodes(nodes, status) {
+    var list = $('nodeList');
+    var keyword = String($('search').value || '').trim().toLowerCase();
+    var selected = status && status.activeNode ? String(status.activeNode) : '';
+    var shown = 0;
+    var html = '';
+    for (var i = 0; i < (nodes || []).length; i += 1) {
+      var node = nodes[i] || {};
+      if (isInfoNode(node.name)) continue;
+      if (keyword && String(node.name || '').toLowerCase().indexOf(keyword) === -1) continue;
+      shown += 1;
+      var active = node.name === selected;
+      html += '<button type="button" class="node' + (active ? ' active' : '') + '" data-node="' + escapeHtml(node.name) + '">' +
+        '<span class="dot"></span><span class="nm">' + escapeHtml(node.name) + '</span>' +
+        '<span class="tag">' + escapeHtml(node.type || '') + '</span>' + delayBadge(node.delay) + '</button>';
+    }
+    list.innerHTML = shown ? html : '<div class="empty">没有匹配的节点</div>';
+    setText('nodeMeta', shown + ' / ' + ((nodes || []).length) + ' 个');
+  }
+
+  function render(data) {
+    if (!data) return;
+    state = data;
+    var status = data.status || {};
+    var policy = data.policy || {};
+    var pill = $('statusPill');
+    pill.className = 'pill ' + statusClass(status);
+    pill.textContent = !status.configured ? '未配置' : (status.running ? '运行中' : '已停止');
+    setText('modeText', status.running ? (status.mode === 'auto' ? '自动选择' : '手动选择') : '—');
+    setText('stNode', shortNode(status.activeNode || status.selected));
+    setText('stCount', status.nodeCount || 0);
+    setText('stMixed', status.mixedPort || '—');
+    setText('stController', status.controllerPort || '—');
+    setText('stCore', status.coreVersion || '—');
+    setText('stPid', status.pid || '—');
+    setText('subMeta', status.configured ? (status.subscription || '已导入') + (status.updatedAt ? ' · ' + status.updatedAt : '') : '未导入');
+    setText('aboutCore', status.coreVersion || 'Mihomo');
+    setText('versionText', 'v0.3.5');
+    $('startBtn').disabled = busy || status.running;
+    $('stopBtn').disabled = busy || !status.running;
+    $('testBtn').disabled = busy || !status.running;
+    $('autoBtn').disabled = busy || !status.running;
+    $('updateBtn').disabled = busy || !status.configured;
+    var banner = $('errorBanner');
+    if (status.lastError) { banner.hidden = false; banner.textContent = '最近错误：' + status.lastError; }
+    else { banner.hidden = true; banner.textContent = ''; }
+    renderNodes(data.nodes || [], status);
+    if (policy && policy.bypassHosts) {
+      var text = policy.bypassHosts.join('\n');
+      if (!policyDirty && text !== lastPolicyText) {
+        lastPolicyText = text;
+        $('bypass').value = text;
+      }
+      setText('defaultHosts', (policy.defaultBypassHosts || []).join('、'));
+      setText('modelHosts', (policy.modelHosts || []).join('、'));
+      var scope = policy.proxyScope === 'models' ? 'models' : 'all';
+      var radios = document.querySelectorAll('input[name="scope"]');
+      if (!policyDirty) {
+        for (var i = 0; i < radios.length; i += 1) {
+          if (radios[i].value === scope && document.activeElement !== radios[i]) radios[i].checked = true;
+        }
+      }
+      setText('aboutData', status.dataDir || '—');
+      setText('aboutSub', status.subscriptionHost || '—');
+    }
+  }
+
+  async function refresh(silent) {
+    try {
+      var data = await request('state');
+      render(data.state);
+      if (!silent && data.state && data.state.status && data.state.status.lastError) toast(data.state.status.lastError, true);
+    } catch (error) {
+      if (!silent) toast(error.message || String(error), true);
+    }
+  }
+
+  async function action(name, body, success) {
+    if (busy) return false;
+    busy = true;
+    try {
+      var data = await request(name, body === undefined ? {} : body);
+      if (data.state) render(data.state);
+      else await refresh(true);
+      toast((data && data.message) || success || '操作完成');
+      return true;
+    } catch (error) {
+      toast(error.message || String(error), true);
+      return false;
+    } finally {
+      busy = false;
+      refresh(true);
+    }
+  }
+
+  function fillPolicy() {
+    if (!state || !state.policy) return;
+    var hosts = state.policy.bypassHosts || [];
+    $('bypass').value = hosts.join('\n');
+    lastPolicyText = hosts.join('\n');
+    policyDirty = false;
+    var scope = state.policy.proxyScope === 'models' ? 'models' : 'all';
+    var radios = document.querySelectorAll('input[name="scope"]');
+    for (var i = 0; i < radios.length; i += 1) radios[i].checked = radios[i].value === scope;
+    setText('defaultHosts', (state.policy.defaultBypassHosts || []).join('、'));
+    setText('modelHosts', (state.policy.modelHosts || []).join('、'));
+  }
+
+  function bind() {
+    var tabs = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < tabs.length; i += 1) {
+      tabs[i].addEventListener('click', function () { activateTab(this.getAttribute('data-tab')); });
+    }
+    $('startBtn').addEventListener('click', function () { action('start', {}, '代理已启动'); });
+    $('stopBtn').addEventListener('click', function () { action('stop', {}, '代理已停止'); });
+    $('testBtn').addEventListener('click', function () { action('test', {}, '测速完成'); });
+    $('autoBtn').addEventListener('click', function () { action('auto', {}, '已切换到自动选择'); });
+    $('coreBtn').addEventListener('click', function () { action('installCore', {}, '内核已安装'); });
+    $('fullBtn').addEventListener('click', function () { openFullPage(); });
+    $('updateBtn').addEventListener('click', function () {
+      var url = $('subUrl').value.trim();
+      if (url) action('subscribe', { url: url, name: $('subName').value.trim() || undefined }, '订阅已更新');
+      else action('update', {}, '订阅已更新');
+    });
+    $('importBtn').addEventListener('click', function () {
+      var url = $('subUrl').value.trim();
+      if (!url) { toast('请先填写订阅链接', true); $('subUrl').focus(); return; }
+      action('subscribe', { url: url, name: $('subName').value.trim() || undefined }, '订阅已导入');
+    });
+    $('search').addEventListener('input', function () { if (state) renderNodes(state.nodes || [], state.status || {}); });
+    $('nodeList').addEventListener('click', function (event) {
+      var target = event.target;
+      while (target && target !== this && !target.getAttribute('data-node')) target = target.parentElement;
+      if (!target || target === this) return;
+      var name = target.getAttribute('data-node');
+      if (!name) return;
+      action('select', { name: name }, '已切换到 ' + name);
+    });
+    $('bypass').addEventListener('input', function () { policyDirty = true; });
+    var scopeInputs = document.querySelectorAll('input[name="scope"]');
+    for (var s = 0; s < scopeInputs.length; s += 1) scopeInputs[s].addEventListener('change', function () { policyDirty = true; });
+    $('savePolicyBtn').addEventListener('click', function () {
+      var checked = document.querySelector('input[name="scope"]:checked');
+      action('settings', {
+        proxyScope: checked ? checked.value : 'all',
+        bypassHosts: $('bypass').value
+      }, '设置已保存').then(function (ok) { if (ok) policyDirty = false; });
+    });
+    $('defaultsBtn').addEventListener('click', function () {
+      var defaults = state && state.policy && state.policy.defaultBypassHosts ? state.policy.defaultBypassHosts : [];
+      $('bypass').value = defaults.join('\n');
+      lastPolicyText = $('bypass').value;
+      policyDirty = true;
+      toast('已填入默认绕行列表，点击“保存设置”生效');
+    });
+    window.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') { var el = document.activeElement; if (el && el.blur) el.blur(); }
+    });
+  }
+
+  async function init() {
+    if (location.search.indexOf('embed=1') !== -1) document.body.classList.add('embed');
+    bind();
+    var hash = String(location.hash || '').replace('#', '');
+    activateTab(hash === 'bypass' || hash === 'about' ? hash : 'proxy');
+    await refresh(true);
+    setInterval(function () { if (!busy && document.visibilityState !== 'hidden') refresh(true); }, 5000);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

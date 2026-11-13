@@ -1,0 +1,7 @@
+node_modules/
+*.tgz
+.pkg-extract-*/
+.clash-test/
+.clash-ui-test/
+.DS_Store
+npm-debug.log*

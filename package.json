@@ -1,0 +1,62 @@
+{
+  "name": "dsh-clash-proxy",
+  "version": "0.3.5",
+  "description": "Give DSH its own Clash/Mihomo proxy with subscription import, automatic node selection, and manual override, without touching system proxy settings.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "platform": "web"
+    },
+    "manifestVersion": 1
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-client-ui-settings": "^0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.2.2-rc.1",
+    "@deepseek-ai/dsh-tools": "^0.2.2-rc.1",
+    "@deepseek-ai/schemastery": "~3.19.0",
+    "react": "^18.2.0"
+  },
+  "dependencies": {
+    "undici": "^7.16.0",
+    "yaml": "^2.9.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ghfight-bilibili/dsh-clash-proxy.git"
+  },
+  "homepage": "https://github.com/Ghfight-bilibili/dsh-clash-proxy#readme",
+  "bugs": {
+    "url": "https://github.com/Ghfight-bilibili/dsh-clash-proxy/issues"
+  },
+  "author": "Ghfight-bilibili",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "clash",
+    "mihomo",
+    "proxy",
+    "plugin"
+  ],
+  "license": "MIT"
+}
