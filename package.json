@@ -1,6 +1,6 @@
 {
-  "name": "@ghfight/dsh-llm-proxy",
-  "version": "0.4.1",
+  "name": "dsh-llm-proxy-plugin",
+  "version": "0.4.2",
   "description": "DSH LLM Proxy: give DSH its own Clash/Mihomo proxy with subscription import, automatic node selection, and manual override, without touching system proxy settings.",
   "type": "module",
   "main": "lib/index.js",

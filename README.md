@@ -1,7 +1,5 @@
 # DSH LLM Proxy
 
-> 原名 `dsh-clash-proxy`，自 v0.4.0 起更名为 **DSH LLM Proxy**；npm 包名为 `@ghfight/dsh-llm-proxy`（npm 认为非 scoped 的 `dsh-llm-proxy` 与现有包 `dsh-llmproxy` 过于相似）。数据目录和 Web 路由保持不变。
-
 给 **DSH 进程自己** 使用的 Clash / Mihomo 代理插件：
 
 - 导入 Clash / Mihomo 订阅链接（http(s)、本地 YAML，兼容 base64 包装的 YAML）；
@@ -50,19 +48,17 @@ Mihomo（私有配置、私有数据目录）
 ### 方式 A：从 npm 安装（推荐）
 
 ```bat
-dsh plugin --profile desktop add @ghfight/dsh-llm-proxy --config.auto-install-peers=false
+dsh plugin --profile desktop add dsh-llm-proxy-plugin --config.auto-install-peers=false
 ```
-
-> 如果 `npm view @ghfight/dsh-llm-proxy` 仍返回 404，说明 npm 还在处理首次发布，请改用方式 B。
 
 ### 方式 B：安装 Release 中的 tarball
 
 1. 从 [Releases](https://github.com/Ghfight-bilibili/dsh-llm-proxy/releases) 下载
-   `dsh-llm-proxy-0.4.1.tgz`；
+   `dsh-llm-proxy-plugin-0.4.2.tgz`；
 2. 在下载目录执行：
 
 ```bat
-dsh plugin --profile desktop add .\dsh-llm-proxy-0.4.1.tgz --config.auto-install-peers=false
+dsh plugin --profile desktop add .\dsh-llm-proxy-plugin-0.4.2.tgz --config.auto-install-peers=false
 ```
 
 然后把下面这段加到当前 profile 的用户 patch 文件
@@ -71,13 +67,13 @@ dsh plugin --profile desktop add .\dsh-llm-proxy-0.4.1.tgz --config.auto-install
 ```yaml
 - insert:
     - id: dsh-llm-proxy
-      name: "@ghfight/dsh-llm-proxy"
+      name: "dsh-llm-proxy-plugin"
       config:
         autoStart: true
 ```
 
 > 插件自己的 `cordis.patch.yml` 也会插入同名条目。**不要同时**把
-> `@ghfight/dsh-llm-proxy` 加进 `dsh.profile.bundles` 再手写 patch，否则可能重复加载。
+> `dsh-llm-proxy-plugin` 加进 `dsh.profile.bundles` 再手写 patch，否则可能重复加载。
 > 二选一：用上面的手写 patch，或把包名加入 `dsh.profile.bundles` 让插件自带 patch 生效。
 
 ### 方式 C：从源码打包
@@ -86,22 +82,12 @@ dsh plugin --profile desktop add .\dsh-llm-proxy-0.4.1.tgz --config.auto-install
 git clone https://github.com/Ghfight-bilibili/dsh-llm-proxy.git
 cd dsh-llm-proxy
 npm pack
-dsh plugin --profile desktop add .\ghfight-dsh-llm-proxy-0.4.1.tgz --config.auto-install-peers=false
+dsh plugin --profile desktop add .\dsh-llm-proxy-plugin-0.4.2.tgz --config.auto-install-peers=false
 ```
 
 然后按方式 B 的 YAML 增加 patch 条目。
 
 安装完成后重启 DSH。重启后在会话里应该能看到 `clash_*` 工具。
-
-### 从旧名 `dsh-clash-proxy` 迁移
-
-新旧包共用数据目录 `%USERPROFILE%\.dsh\clash-proxy`（或 `$DSH_HOME/clash-proxy`），订阅、核心和节点状态都不会丢。升级时不要同时保留两个 patch 条目：
-
-1. 删除 profile patch 里 `id: dsh-clash-proxy` 的 `insert` 条目；
-2. `dsh plugin --profile desktop remove dsh-clash-proxy`；
-3. 按上面的方式安装 `@ghfight/dsh-llm-proxy`，把 patch 条目改成 `id: dsh-llm-proxy` / `name: "@ghfight/dsh-llm-proxy"`；
-4. 如果装过非 scoped 的 `dsh-llm-proxy@0.4.0`，先 `dsh plugin --profile desktop remove dsh-llm-proxy`，再安装 scoped 包；两者不能同时存在；
-5. 重启 DSH。
 
 ## Web 控制面板
 
@@ -143,7 +129,7 @@ dsh plugin --profile desktop add .\ghfight-dsh-llm-proxy-0.4.1.tgz --config.auto
 ```yaml
 - insert:
     - id: dsh-llm-proxy
-      name: "@ghfight/dsh-llm-proxy"
+      name: "dsh-llm-proxy-plugin"
       config:
         autoStart: true
         subscriptionUrl: 'https://example.com/api/v1/client/subscribe?token=...'
@@ -243,7 +229,7 @@ clash-proxy/
 2. 如果通过 pnpm 安装：
 
    ```bat
-   dsh plugin --profile desktop remove @ghfight/dsh-llm-proxy
+   dsh plugin --profile desktop remove dsh-llm-proxy-plugin
    ```
 
 3. 删除数据目录 `%USERPROFILE%\.dsh\clash-proxy`（可选，会同时删除已下载核心和订阅缓存）；
